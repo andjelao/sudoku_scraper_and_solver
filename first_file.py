@@ -31,7 +31,7 @@ class Finder:
         return self.source.find_all(self.element, value = self.value)
     def find_parents_id(self):
         """ find the id of a parent of the specified element"""
-        return self.element.find_parent(self.value).get('id').replace('c','')
+        return self.element.find_parent(self.value).get('id')
 
 class Number: #pylint: disable=too-few-public-methods
     """ a class whose objects are numbers on the sudoku board,
@@ -47,5 +47,5 @@ sudoku_table = Finder(soup, "table", "puzzle_grid").find_element_by_id()
 list_of_inputs_with_numbers = Finder(sudoku_table, "input", True).find_all_elements_with_a_value()
 list_of_number_objects = []
 for i in list_of_inputs_with_numbers:
-    coordinates = Finder("", i, 'td' ).find_parents_id()
+    coordinates = Finder("", i, 'td' ).find_parents_id().replace('c','')
     list_of_number_objects.append(Number(i['value'], coordinates[0], coordinates[1]))
