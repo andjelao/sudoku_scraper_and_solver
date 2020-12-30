@@ -39,14 +39,14 @@ class SudokuBoard:
     def __init__(self):
         """constructor"""
         self.board = [["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", "", ""]]
+                      ["", "", "", "", "", "", "", "", ""],
+                      ["", "", "", "", "", "", "", "", ""],
+                      ["", "", "", "", "", "", "", "", ""],
+                      ["", "", "", "", "", "", "", "", ""],
+                      ["", "", "", "", "", "", "", "", ""],
+                      ["", "", "", "", "", "", "", "", ""],
+                      ["", "", "", "", "", "", "", "", ""],
+                      ["", "", "", "", "", "", "", "", ""]]
         self.row, self.col = -1, -1
         self.fill_in_the_starting_board()
         self.visualize()
@@ -55,7 +55,7 @@ class SudokuBoard:
         """ fills the board data structure with starting numbers for the game"""
         for i in inputs_with_numbers:
             coordinates = WebScraper().find_parents_id(i, 'td' ).replace('c','')
-            self.board[int(coordinates[0])][int(coordinates[1])] = int(i['value'])
+            self.board[int(coordinates[0])][int(coordinates[1])] = i['value']+"s"
         return self.board
 
     def visualize(self):
@@ -99,11 +99,11 @@ class SudokuBoard:
             self.canvas.create_line(x_1, y_1, x_2, y_2, width = _w)
 
         # draw buttons
-        for _i in range(1, 9):
+        for _i in range(1, 10):
             button = Button(root, text = _i, width = 5, height = 2, bg = "black", \
             fg = "white", command = lambda _i = _i: self.number_button_pressed(_i))
             button.pack(side = LEFT)
-        clear = Button(root, text = "Clear", width = 12, height = 2, bg = "white", \
+        clear = Button(root, text = "Clear", width = 6, height = 2, bg = "white", \
         command = self.clear)
         clear.pack(side = LEFT)
 
@@ -116,11 +116,16 @@ class SudokuBoard:
         self.canvas.delete("numbers")
         for _x in range(9):
             for _y in range(9):
-                if self.board[_x][_y] != "":
+                element = self.board[_x][_y] 
+                if element != "":
                     x_coor = _y * 50 + 25
                     y_coor = _x * 50 + 25
-                    self.canvas.create_text(x_coor, y_coor, text= self.board[_x][_y], \
-                    tags="numbers")
+                    if "s" in element:
+                        self.canvas.create_text(x_coor, y_coor, text= element.replace("s",""), \
+                    tags="numbers", font = ("arial"))
+                    else:
+                        self.canvas.create_text(x_coor, y_coor, text= element, \
+                        tags="numbers", font = ("serif", 12))
 
     def _cell_clicked(self, event):
         """sets the focus on the selected cell"""
@@ -137,21 +142,22 @@ class SudokuBoard:
             y_0 = self.row * 50 + 1
             x_1 = (self.col + 1) * 50 - 1
             y_1 = (self.row + 1) * 50 - 1
-            self.canvas.create_rectangle(
-                x_0, y_0, x_1, y_1,
-                outline="red", tags="cursor")
+            if "s" not in self.board[self.row][self.col]:
+                self.canvas.create_rectangle(
+                    x_0, y_0, x_1, y_1,
+                    outline="red", tags="cursor")
 
     def _key_pressed(self, event):
         """puts the pressed keybord key in the selected cell"""
         if self.row >= 0 and self.col >= 0 and event.char in "1234567890":
-            self.board[self.row][self.col] = int(event.char)
+            self.board[self.row][self.col] = event.char
             self._draw_puzzle()
             self._draw_cursor()
 
     def number_button_pressed(self, text):
         """puts the number`s value in the selected cell"""
         if self.row >= 0 and self.col >= 0:
-            self.board[self.row][self.col] = int(text)
+            self.board[self.row][self.col] = str(text)
             self._draw_puzzle()
             self._draw_cursor()
 
