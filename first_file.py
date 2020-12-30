@@ -36,25 +36,30 @@ inputs_with_numbers = WebScraper().find_all_elements_with_a_value(sudoku_table, 
 
 class SudokuBoard:
     """Sudoku game class"""
-    board = [["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""],
-             ["", "", "", "", "", "", "", "", ""]]
+    def __init__(self):
+        """constructor"""
+        self.board = [["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""]]
+        self.row, self.col = -1, -1
+        self.fill_in_the_starting_board()
+        self.visualize()
 
     def fill_in_the_starting_board(self):
         """ fills the board data structure with starting numbers for the game"""
         for i in inputs_with_numbers:
             coordinates = WebScraper().find_parents_id(i, 'td' ).replace('c','')
-            SudokuBoard.board[int(coordinates[0])][int(coordinates[1])] = i['value']
-        return SudokuBoard.board
+            self.board[int(coordinates[0])][int(coordinates[1])] = int(i['value'])
+        return self.board
 
     def visualize(self):
-        """ Sudoku GIU """
+        """ Sudoku GIU - canvas with 9 * 9 grid, buttons with numbers 1-9 and a "Clear" button"""
         root = Tk()
         root.title("Sudoku")
         square = 50
@@ -62,8 +67,12 @@ class SudokuBoard:
         thick_every = 3
         normal = 1
         wide = 3
-        canvas = Canvas(root, width = num_sq * square, height= 9 * square, bg ='white')
-        canvas.pack()
+        self.canvas = Canvas(root, width = num_sq * square, height= 450, bg ='white')
+        self.canvas.bind("<Button-1>", self._cell_clicked)
+        self.canvas.bind("<Key>", self._key_pressed)
+        self.canvas.bind("<BackSpace>", self.do_backspace)
+        self.canvas.pack(pady = 10)
+        self._draw_puzzle()
 
         # draw horizontal lines
         x_1 = 0
@@ -75,7 +84,7 @@ class SudokuBoard:
                 _w = normal
             else:
                 _w = wide
-            canvas.create_line(x_1, y_1, x_2, y_2, width = _w)
+            self.canvas.create_line(x_1, y_1, x_2, y_2, width = _w)
 
         # draw vertical lines
         y_1 = 0
@@ -87,16 +96,76 @@ class SudokuBoard:
                 _w = normal
             else:
                 _w = wide
-            canvas.create_line(x_1, y_1, x_2, y_2, width = _w)
+            self.canvas.create_line(x_1, y_1, x_2, y_2, width = _w)
 
-        # draw cells with text
-        for _x in range(9):
-            for _y in range(9):
-                if SudokuBoard.board[_x][_y] != "":
-                    x_coor = _y * 50 + 25
-                    y_coor = _x * 50 + 25
-                    canvas.create_text(x_coor, y_coor, text= SudokuBoard.board[_x][_y])
+        # draw buttons
+        for _i in range(1, 9):
+            button = Button(root, text = _i, width = 5, height = 2, bg = "black", \
+            fg = "white", command = lambda _i = _i: self.number_button_pressed(_i))
+            button.pack(side = LEFT)
+        clear = Button(root, text = "Clear", width = 12, height = 2, bg = "white", \
+        command = self.clear)
+        clear.pack(side = LEFT)
+
+        root.resizable(False, False)
+        root.configure(bg = "white")
         root.mainloop()
 
-SudokuBoard().fill_in_the_starting_board()
-SudokuBoard().visualize()
+    def _draw_puzzle(self):
+        """fills cells with numbers from the board"""
+        self.canvas.delete("numbers")
+        for _x in range(9):
+            for _y in range(9):
+                if self.board[_x][_y] != "":
+                    x_coor = _y * 50 + 25
+                    y_coor = _x * 50 + 25
+                    self.canvas.create_text(x_coor, y_coor, text= self.board[_x][_y], \
+                    tags="numbers")
+
+    def _cell_clicked(self, event):
+        """sets the focus on the selected cell"""
+        _x, _y = event.x, event.y
+        self.row, self.col = _y // 50, _x // 50
+        self.canvas.focus_set()
+        self._draw_cursor()
+
+    def _draw_cursor(self):
+        """draws the red rectangle selector on the selected cell"""
+        self.canvas.delete("cursor")
+        if self.row >= 0 and self.col >= 0:
+            x_0 = self.col * 50 + 1
+            y_0 = self.row * 50 + 1
+            x_1 = (self.col + 1) * 50 - 1
+            y_1 = (self.row + 1) * 50 - 1
+            self.canvas.create_rectangle(
+                x_0, y_0, x_1, y_1,
+                outline="red", tags="cursor")
+
+    def _key_pressed(self, event):
+        """puts the pressed keybord key in the selected cell"""
+        if self.row >= 0 and self.col >= 0 and event.char in "1234567890":
+            self.board[self.row][self.col] = int(event.char)
+            self._draw_puzzle()
+            self._draw_cursor()
+
+    def number_button_pressed(self, text):
+        """puts the number`s value in the selected cell"""
+        if self.row >= 0 and self.col >= 0:
+            self.board[self.row][self.col] = int(text)
+            self._draw_puzzle()
+            self._draw_cursor()
+
+    def clear(self):
+        """clears the selected cell"""
+        if self.row >= 0 and self.col >= 0:
+            self.board[self.row][self.col] = ""
+            self._draw_puzzle()
+            self._draw_cursor()
+
+    def do_backspace(self, event):
+        """clears the selected cell with the backspace keyboard key"""
+        if self.row >= 0 and self.col >= 0:
+            self.board[self.row][self.col] = ""
+            self._draw_puzzle()
+            self._draw_cursor()
+game = SudokuBoard()
