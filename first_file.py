@@ -55,9 +55,7 @@ class SudokuBoard:
         """ fills the board data structure with starting numbers for the game"""
         for i in inputs_with_numbers:
             coordinates = WebScraper().find_parents_id(i, 'td' ).replace('c','')
-            """original numbers have the letter "s" in the board matrix that does not show on
-            the screen so that the user can not select them, change them, erase them"""
-            self.board[int(coordinates[0])][int(coordinates[1])] = i['value']+"s"
+            self.board[int(coordinates[0])][int(coordinates[1])] = int(i['value'])
         return self.board
 
     def visualize(self):
@@ -122,12 +120,8 @@ class SudokuBoard:
                 if element != "":
                     x_coor = _y * 50 + 25
                     y_coor = _x * 50 + 25
-                    if not isinstance(element, int):
-                        self.canvas.create_text(x_coor, y_coor, text= element.replace("s",""), \
-                    tags="numbers", font = ("arial"))
-                    else:
-                        self.canvas.create_text(x_coor, y_coor, text= element, \
-                        tags="numbers", font = ("serif", 12))
+                    self.canvas.create_text(x_coor, y_coor, text= element, \
+                    tags="numbers", font = ("serif", 12))
 
     def _cell_clicked(self, event):
         """sets the focus on the selected cell"""
@@ -144,15 +138,13 @@ class SudokuBoard:
             y_0 = self.row * 50 + 1
             x_1 = (self.col + 1) * 50 - 1
             y_1 = (self.row + 1) * 50 - 1
-            element = self.board[self.row][self.col]
-            if isinstance(element, int) or "s" not in element:
-                self.canvas.create_rectangle(
-                    x_0, y_0, x_1, y_1,
-                    outline="red", tags="cursor")
+            self.canvas.create_rectangle(
+                x_0, y_0, x_1, y_1,
+                outline="red", tags="cursor")
 
     def _key_pressed(self, event):
         """puts the pressed keybord key in the selected cell"""
-        if self.row >= 0 and self.col >= 0 and event.char in "1234567890":
+        if self.row >= 0 and self.col >= 0 and event.char in "123456789":
             self.board[self.row][self.col] = int(event.char)
             self._draw_puzzle()
             self._draw_cursor()
@@ -180,34 +172,19 @@ class SudokuBoard:
             self._draw_puzzle()
             self._draw_cursor()
     
-    def is_board_full(self):
-        """checks if the sudoku board is completely filled"""
-        for x in range(9):
-            for y in range(9):
-                if self.board[x][y] == "":
-                    return False
-        return True
-
-    def transform_into_int(self):
-        """transforms all elements of the board into integers"""
-        for x in range(9):
-            for y in range(9):
-                element = self.board[x][y]
-                if not isinstance(element, int):
-                    element = element.replace("s","")
-                    self.board[x][y] = int(element)
-    
     def check_win(self):
         """checks if the winner filled the sudoku correctly"""
-        if self.is_board_full():
-            self.transform_into_int()
-            for row in range(9):
-                if not self.check_row(row):
+        for row in range(9):
+            if not self.check_row(row):
+                return False
+        for column in range(9):
+            if not self.check_column(column):
+                return False
+        for r in range(0, 7, 3):
+            for c in range(0, 7, 3):
+                if not self.check_square(r, c):
                     return False
-            for column in range(9):
-                if not self.check_column(column):
-                    return False
-            print("WIN")
+        print("WIN")
         
     def check_block(self, block):
         """checks if the particular area is filled correctly"""
@@ -222,4 +199,12 @@ class SudokuBoard:
         return self.check_block(
             [self.board[row][column] for row in range(9)]
         )
+
+    def check_square(self, r, c):
+        niz = []
+        for row in range(r, r + 3, 1):
+            for column in range(c, c + 3, 1):
+                niz.append(self.board[row][column])
+        return self.check_block(niz)
+
 game = SudokuBoard()
