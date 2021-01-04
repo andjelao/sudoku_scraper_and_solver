@@ -60,14 +60,14 @@ class SudokuBoard:
 
     def visualize(self):
         """ Sudoku GIU - canvas with 9 * 9 grid, buttons with numbers 1-9 and a "Clear" button"""
-        root = Tk()
-        root.title("Sudoku")
+        self.root = Tk()
+        self.root.title("Sudoku")
         square = 50
         num_sq = 9
         thick_every = 3
         normal = 1
         wide = 3
-        self.canvas = Canvas(root, width = num_sq * square, height= 450, bg ='white')
+        self.canvas = Canvas(self.root, width = num_sq * square, height= 450, bg ='white')
         self.canvas.bind("<Button-1>", self._cell_clicked)
         self.canvas.bind("<Key>", self._key_pressed)
         self.canvas.bind("<BackSpace>", self.do_backspace)
@@ -99,17 +99,19 @@ class SudokuBoard:
             self.canvas.create_line(x_1, y_1, x_2, y_2, width = _w)
 
         # draw buttons
+        buttons = Frame(self.root)
+        buttons.pack()
         for _i in range(1, 10):
-            button = Button(root, text = _i, width = 5, height = 2, bg = "black", \
+            button = Button(buttons, text = _i, width = 5, height = 2, bg = "black", \
             fg = "white", command = lambda _i = _i: self.number_button_pressed(_i))
             button.pack(side = LEFT)
-        clear = Button(root, text = "Clear", width = 6, height = 2, bg = "white", \
+        clear = Button(buttons, text = "Clear", width = 6, height = 2, bg = "white", \
         command = self.clear)
         clear.pack(side = LEFT)
 
-        root.resizable(False, False)
-        root.configure(bg = "white")
-        root.mainloop()
+        self.root.resizable(False, False)
+        self.root.configure(bg = "white")
+        self.root.mainloop()
 
     def _draw_puzzle(self):
         """fills cells with numbers from the board"""
@@ -184,7 +186,7 @@ class SudokuBoard:
             for c in range(0, 7, 3):
                 if not self.check_square(r, c):
                     return False
-        print("WIN")
+        self.win()
         
     def check_block(self, block):
         """checks if the particular area is filled correctly"""
@@ -201,10 +203,30 @@ class SudokuBoard:
         )
 
     def check_square(self, r, c):
-        niz = []
+        """ checks if the board squares are filled correctly"""
+        block = []
         for row in range(r, r + 3, 1):
             for column in range(c, c + 3, 1):
-                niz.append(self.board[row][column])
-        return self.check_block(niz)
+                block.append(self.board[row][column])
+        return self.check_block(block)
 
+    def win(self):
+        self.win_frame = Frame(self.root, bg = "white")
+        self.win_frame.pack()
+        label = Label(self.win_frame, text = "Congrats! You have won!!!", bg = "white")
+        label.pack(pady = 3)
+        self.name_entry_frame = Frame(self.win_frame, bg = "white")
+        self.name_entry_frame.pack()
+        name = Label(self.name_entry_frame, text = "Your name:", bg = "white")
+        name.pack(side = LEFT, pady = 3)
+        entry_name = Entry(self.name_entry_frame, bd = 2)
+        entry_name.pack(side = RIGHT, pady = 3)
+        self.surname_entry_frame = Frame(self.win_frame, bg = "white")
+        self.surname_entry_frame.pack()
+        surname = Label(self.surname_entry_frame, text = "Your surname:", bg = "white")
+        surname.pack(side = LEFT, pady = 3)
+        entry_surname = Entry(self.surname_entry_frame, bd = 2)
+        entry_surname.pack(side = RIGHT, pady = 3)
+        submit = Button(self.win_frame, text = "Submit", bg = "black", fg = "white", height = 1, width = 6)
+        submit.pack(pady = 3)
 game = SudokuBoard()
