@@ -47,6 +47,7 @@ class SudokuBoard:
                       ["", "", "", "", "", "", "", "", ""],
                       ["", "", "", "", "", "", "", "", ""],
                       ["", "", "", "", "", "", "", "", ""]]
+        self.original_numbers = []
         self.row, self.col = -1, -1
         self.fill_in_the_starting_board()
         self.visualize()
@@ -55,7 +56,10 @@ class SudokuBoard:
         """ fills the board data structure with starting numbers for the game"""
         for i in inputs_with_numbers:
             coordinates = WebScraper().find_parents_id(i, 'td' ).replace('c','')
-            self.board[int(coordinates[0])][int(coordinates[1])] = int(i['value'])
+            row = int(coordinates[0])
+            column = int(coordinates[1])
+            self.original_numbers.append((row, column))
+            self.board[row][column] = int(i['value'])
         return self.board
 
     def visualize(self):
@@ -119,11 +123,14 @@ class SudokuBoard:
         for _x in range(9):
             for _y in range(9):
                 element = self.board[_x][_y] 
-                if element != "":
-                    x_coor = _y * 50 + 25
-                    y_coor = _x * 50 + 25
+                x_coor = _y * 50 + 25
+                y_coor = _x * 50 + 25
+                if (_x, _y) not in self.original_numbers:
                     self.canvas.create_text(x_coor, y_coor, text= element, \
                     tags="numbers", font = ("serif", 12))
+                else:
+                    self.canvas.create_text(x_coor, y_coor, text= element, \
+                    tags="numbers", font = ("arial"))
 
     def _cell_clicked(self, event):
         """sets the focus on the selected cell"""
@@ -140,9 +147,10 @@ class SudokuBoard:
             y_0 = self.row * 50 + 1
             x_1 = (self.col + 1) * 50 - 1
             y_1 = (self.row + 1) * 50 - 1
-            self.canvas.create_rectangle(
-                x_0, y_0, x_1, y_1,
-                outline="red", tags="cursor")
+            if (self.row, self.col) not in self.original_numbers:
+                self.canvas.create_rectangle(
+                    x_0, y_0, x_1, y_1,
+                    outline="red", tags="cursor")
 
     def _key_pressed(self, event):
         """puts the pressed keybord key in the selected cell"""
