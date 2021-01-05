@@ -1,0 +1,2 @@
+this is the folder where files named user`s_name_surname_current_time
+are going to be created automatically every time a user wins
