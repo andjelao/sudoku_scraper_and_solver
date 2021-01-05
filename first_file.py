@@ -1,10 +1,11 @@
 """ scrape https://nine.websudoku.com/ and get the layout of numbers on the sudoku board"""
-from tkinter import * # pylint: disable=unused-import, unused-wildcard-import
+from tkinter import Tk, Canvas, Frame, Button, Entry, Label, LEFT, RIGHT
+from datetime import datetime
+import os
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import chromedriver_binary # pylint: disable=unused-import
-from datetime import datetime
 
 class WebScraper:
     """
@@ -123,7 +124,7 @@ class SudokuBoard:
         self.canvas.delete("numbers")
         for _x in range(9):
             for _y in range(9):
-                element = self.board[_x][_y] 
+                element = self.board[_x][_y]
                 x_coor = _y * 50 + 25
                 y_coor = _x * 50 + 25
                 if (_x, _y) not in self.original_numbers:
@@ -182,7 +183,7 @@ class SudokuBoard:
             self.board[self.row][self.col] = ""
             self._draw_puzzle()
             self._draw_cursor()
-    
+
     def check_win(self):
         """checks if the winner filled the sudoku correctly"""
         for row in range(9):
@@ -196,15 +197,15 @@ class SudokuBoard:
                 if not self.check_square(r, c):
                     return False
         self.win()
-        
+
     def check_block(self, block):
         """checks if the particular area is filled correctly"""
         return set(block) == set(range(1, 10))
-    
+
     def check_row(self, row):
         """checks if the row is filled correctly"""
         return self.check_block(self.board[row])
-    
+
     def check_column(self, column):
         """checks if the column is filled correctly"""
         return self.check_block(
@@ -218,7 +219,7 @@ class SudokuBoard:
             for column in range(c, c + 3, 1):
                 block.append(self.board[row][column])
         return self.check_block(block)
-        
+
     def win(self):
         """places entries and a button on the screen"""
         self.win_frame = Frame(self.root, bg = "white")
@@ -237,7 +238,8 @@ class SudokuBoard:
         surname.pack(side = LEFT, pady = 3)
         self.entry_surname = Entry(self.surname_entry_frame, bd = 2)
         self.entry_surname.pack(side = RIGHT, pady = 3)
-        submit = Button(self.win_frame, text = "Submit", bg = "black", fg = "white", height = 1, width = 6,
+        submit = Button(self.win_frame, text = "Submit", bg = "black", fg = "white",
+        height = 1, width = 6,
         command = self.result_file)
         submit.pack(pady = 3)
 
@@ -249,9 +251,20 @@ class SudokuBoard:
         self.entry_surname.delete(0, "end")
         self.win_frame.pack_forget()
         self.calculate_time()
-    
+        _path = "results/"
+        my_file = os.path.join(_path, f"{name}_{surname}_{self.current_time}.txt")
+        f = open(my_file, "w")
+        for _x in range(9):
+            for _y in range(9):
+                if _y == 0 and _x != 0 :
+                    content = f.write("\n"+str(self.board[_x][_y]))
+                else:
+                    content = f.write(str(self.board[_x][_y]))
+        f.close()
+
     def calculate_time(self):
         """calculates the time of the user`s win"""
         now = datetime.now()
-        self.current_time = now.strftime("%H:%M:%S")
+        self.current_time = now.strftime("%Hh_%Mm_%Ss")
+
 game = SudokuBoard()
