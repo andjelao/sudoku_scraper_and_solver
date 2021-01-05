@@ -51,6 +51,7 @@ class SudokuBoard:
                       ["", "", "", "", "", "", "", "", ""]]
         self.original_numbers = []
         self.row, self.col = -1, -1
+        self.current_time = 0
         self.fill_in_the_starting_board()
         self.visualize()
 
@@ -114,6 +115,11 @@ class SudokuBoard:
         clear = Button(buttons, text = "Clear", width = 6, height = 2, bg = "white", \
         command = self.clear)
         clear.pack(side = LEFT)
+
+        #make frames
+        self.win_frame = Frame(self.root, bg = "white")
+        self.name_entry_frame = Frame(self.win_frame, bg = "white")
+        self.surname_entry_frame = Frame(self.win_frame, bg = "white")
 
         self.root.resizable(False, False)
         self.root.configure(bg = "white")
@@ -192,9 +198,9 @@ class SudokuBoard:
         for column in range(9):
             if not self.check_column(column):
                 return False
-        for r in range(0, 7, 3):
-            for c in range(0, 7, 3):
-                if not self.check_square(r, c):
+        for _r in range(0, 7, 3):
+            for _c in range(0, 7, 3):
+                if not self.check_square(_r, _c):
                     return False
         self.win()
 
@@ -212,27 +218,24 @@ class SudokuBoard:
             [self.board[row][column] for row in range(9)]
         )
 
-    def check_square(self, r, c):
+    def check_square(self, _r, _c):
         """ checks if the board squares are filled correctly"""
         block = []
-        for row in range(r, r + 3, 1):
-            for column in range(c, c + 3, 1):
+        for row in range(_r, _r + 3, 1):
+            for column in range(_c, _c + 3, 1):
                 block.append(self.board[row][column])
         return self.check_block(block)
 
     def win(self):
         """places entries and a button on the screen"""
-        self.win_frame = Frame(self.root, bg = "white")
         self.win_frame.pack()
         label = Label(self.win_frame, text = "Congrats! You have won!!!", bg = "white")
         label.pack(pady = 3)
-        self.name_entry_frame = Frame(self.win_frame, bg = "white")
         self.name_entry_frame.pack()
         name = Label(self.name_entry_frame, text = "Your name:", bg = "white")
         name.pack(side = LEFT, pady = 3)
         self.entry_name = Entry(self.name_entry_frame, bd = 2)
         self.entry_name.pack(side = RIGHT, pady = 3)
-        self.surname_entry_frame = Frame(self.win_frame, bg = "white")
         self.surname_entry_frame.pack()
         surname = Label(self.surname_entry_frame, text = "Your surname:", bg = "white")
         surname.pack(side = LEFT, pady = 3)
@@ -251,16 +254,17 @@ class SudokuBoard:
         self.entry_surname.delete(0, "end")
         self.win_frame.pack_forget()
         self.calculate_time()
-        _path = "results/"
-        my_file = os.path.join(_path, f"{name}_{surname}_{self.current_time}.txt")
-        f = open(my_file, "w")
+        folder = "results/"
+        file_path = os.path.join(folder, f"{name}_{surname}_{self.current_time}.txt")
+        my_file = open(file_path, "w")
         for _x in range(9):
             for _y in range(9):
                 if _y == 0 and _x != 0 :
-                    content = f.write("\n"+str(self.board[_x][_y]))
+                    my_file.write("\n"+str(self.board[_x][_y]))
                 else:
-                    content = f.write(str(self.board[_x][_y]))
-        f.close()
+                    my_file.write(str(self.board[_x][_y]))
+        my_file.close()
+        self.canvas.delete("numbers")
 
     def calculate_time(self):
         """calculates the time of the user`s win"""
