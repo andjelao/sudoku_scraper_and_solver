@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import chromedriver_binary # pylint: disable=unused-import
+from datetime import datetime
 
 class WebScraper:
     """
@@ -217,8 +218,9 @@ class SudokuBoard:
             for column in range(c, c + 3, 1):
                 block.append(self.board[row][column])
         return self.check_block(block)
-
+        
     def win(self):
+        """places entries and a button on the screen"""
         self.win_frame = Frame(self.root, bg = "white")
         self.win_frame.pack()
         label = Label(self.win_frame, text = "Congrats! You have won!!!", bg = "white")
@@ -227,14 +229,29 @@ class SudokuBoard:
         self.name_entry_frame.pack()
         name = Label(self.name_entry_frame, text = "Your name:", bg = "white")
         name.pack(side = LEFT, pady = 3)
-        entry_name = Entry(self.name_entry_frame, bd = 2)
-        entry_name.pack(side = RIGHT, pady = 3)
+        self.entry_name = Entry(self.name_entry_frame, bd = 2)
+        self.entry_name.pack(side = RIGHT, pady = 3)
         self.surname_entry_frame = Frame(self.win_frame, bg = "white")
         self.surname_entry_frame.pack()
         surname = Label(self.surname_entry_frame, text = "Your surname:", bg = "white")
         surname.pack(side = LEFT, pady = 3)
-        entry_surname = Entry(self.surname_entry_frame, bd = 2)
-        entry_surname.pack(side = RIGHT, pady = 3)
-        submit = Button(self.win_frame, text = "Submit", bg = "black", fg = "white", height = 1, width = 6)
+        self.entry_surname = Entry(self.surname_entry_frame, bd = 2)
+        self.entry_surname.pack(side = RIGHT, pady = 3)
+        submit = Button(self.win_frame, text = "Submit", bg = "black", fg = "white", height = 1, width = 6,
+        command = self.result_file)
         submit.pack(pady = 3)
+
+    def result_file(self):
+        """command for the Submit button"""
+        name = str(self.entry_name.get())
+        surname = str(self.entry_surname.get())
+        self.entry_name.delete(0, "end")
+        self.entry_surname.delete(0, "end")
+        self.win_frame.pack_forget()
+        self.calculate_time()
+    
+    def calculate_time(self):
+        """calculates the time of the user`s win"""
+        now = datetime.now()
+        self.current_time = now.strftime("%H:%M:%S")
 game = SudokuBoard()
